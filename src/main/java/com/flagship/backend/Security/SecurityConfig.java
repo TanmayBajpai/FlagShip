@@ -32,7 +32,6 @@ public class SecurityConfig {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
         daoAuthenticationProvider.setUserDetailsService(customUserDetailsService);
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
-
         return daoAuthenticationProvider;
     }
 
@@ -48,7 +47,7 @@ public class SecurityConfig {
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(new ApiOrForwardAuthenticationEntryPoint()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/flags/**").authenticated()
+                        .requestMatchers("/flags", "/flags/**").authenticated()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().permitAll())
                 .authenticationProvider(daoAuthenticationProvider())

@@ -1,0 +1,31 @@
+.toast {
+    position: fixed;
+    bottom: 35px;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background-color: rgb(22, 26, 36);
+    border: 1px solid rgb(48, 54, 70);
+    color: rgb(210, 215, 230);
+    font-family: arial;
+    font-size: 16px;
+    padding: 12px 28px;
+    border-radius: 10px;
+    z-index: 2000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    white-space: nowrap;
+}
+
+.toast--visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast--success {
+    border-left: 4px solid rgb(48, 160, 90);
+}
+
+.toast--error {
+    border-left: 4px solid rgb(180, 60, 60);
+}

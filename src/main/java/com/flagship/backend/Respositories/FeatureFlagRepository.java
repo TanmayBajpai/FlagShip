@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface FeatureFlagRepository extends JpaRepository<FeatureFlag, UUID> {
     Optional<FeatureFlag> findFeatureFlagById(UUID id);
     List<FeatureFlag> findFeatureFlagsByOwner(String owner);
+    boolean existsByOwnerAndFlagName(String owner, String flagName);
 }

@@ -1,8 +1,11 @@
 package com.flagship.backend.Controllers;
 
 import com.flagship.backend.DTO.CreateFlagRequest;
+import com.flagship.backend.DTO.FlagDTO;
+import com.flagship.backend.DTO.TargetingRuleDTO;
 import com.flagship.backend.DTO.UpdateFlagRequest;
 import com.flagship.backend.Entities.FeatureFlag;
+import com.flagship.backend.Entities.TargetingRule;
 import com.flagship.backend.Respositories.FeatureFlagRepository;
 import com.flagship.backend.Services.*;
 
@@ -13,8 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/flags")
@@ -36,60 +38,60 @@ public class FlagController {
         this.featureFlagRepository = featureFlagRepository;
     }
 
-    @PostMapping("/create-flag")
+    @PostMapping
     public ResponseEntity<String> createFlag(@Valid @RequestBody CreateFlagRequest createFlagRequest, @AuthenticationPrincipal UserDetails userDetails) {
-        String username = userDetails.getUsername();
-        createFlagService.createFlag(createFlagRequest, username);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body("Flag created");
+        createFlagService.createFlag(createFlagRequest, userDetails.getUsername());
+        return ResponseEntity.status(HttpStatus.CREATED).body("Flag created");
     }
 
-    @PutMapping("/update-flag/{id}")
-    public ResponseEntity<String> updateFlag(@RequestBody UpdateFlagRequest updateFlagRequest, @PathVariable UUID id, @AuthenticationPrincipal UserDetails userDetails) {
-        System.out.println("delete flag called");
-        String username = userDetails.getUsername();
-        validateOwnershipService.validateByUsername(username, id);
-
-        updateFlagService.updateFlag(updateFlagRequest, id);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body("Flag updated");
-    }
-
-    @DeleteMapping("/delete-flag/{id}")
-    public ResponseEntity<String> deleteFlag(@PathVariable UUID id, @AuthenticationPrincipal UserDetails userDetails) {
-        String username = userDetails.getUsername();
-        validateOwnershipService.validateByUsername(username, id);
-
-        deleteFlagService.deleteFlag(id);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body("Flag deleted");
-    }
-
-    @PutMapping("/reset-users/{id}")
-    public ResponseEntity<String> resetUsers(@PathVariable UUID id, @AuthenticationPrincipal UserDetails userDetails) {
-        String username = userDetails.getUsername();
-        validateOwnershipService.validateByUsername(username, id);
-
-        resetUsersService.resetUsers(id);
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body("Flag seed reset");
-    }
-
-    @GetMapping("/get-flags")
+    @GetMapping
     public ResponseEntity<?> getFlags(@AuthenticationPrincipal UserDetails userDetails) {
-        String username = userDetails.getUsername();
+        List<FeatureFlag> featureFlags = featureFlagRepository.findFeatureFlagsByOwner(userDetails.getUsername());
+        List<FlagDTO> result = new ArrayList<>();
 
-        List<FeatureFlag> featureFlags = featureFlagRepository.findFeatureFlagsByOwner(username);
+        for (FeatureFlag featureFlag : featureFlags) {
+            List<TargetingRuleDTO> targetingRules = new ArrayList<>();
+            for (TargetingRule rule : featureFlag.getTargetingRules()) {
+                if (!rule.isEnabled()) continue;
+                TargetingRuleDTO dto = new TargetingRuleDTO();
+                dto.setKey(rule.getRuleKey());
+                dto.setValues(rule.getAllowedValues());
+                dto.setEnabled(true);
+                targetingRules.add(dto);
+            }
+            result.add(new FlagDTO(
+                    featureFlag.getId(),
+                    featureFlag.getFlagName(),
+                    featureFlag.getDescription(),
+                    featureFlag.isEnabled(),
+                    featureFlag.getRolloutPercent(),
+                    targetingRules,
+                    featureFlag.getFlagConversions(),
+                    featureFlag.getControlConversions()
+            ));
+        }
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(featureFlags);
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateFlag(@RequestBody UpdateFlagRequest updateFlagRequest, @PathVariable UUID id, @AuthenticationPrincipal UserDetails userDetails) {
+        validateOwnershipService.validateByUsername(userDetails.getUsername(), id);
+        updateFlagService.updateFlag(updateFlagRequest, id);
+        return ResponseEntity.ok("Flag updated");
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteFlag(@PathVariable UUID id, @AuthenticationPrincipal UserDetails userDetails) {
+        validateOwnershipService.validateByUsername(userDetails.getUsername(), id);
+        deleteFlagService.deleteFlag(id);
+        return ResponseEntity.ok("Flag deleted");
+    }
+
+    @PostMapping("/{id}/reset")
+    public ResponseEntity<String> resetUsers(@PathVariable UUID id, @AuthenticationPrincipal UserDetails userDetails) {
+        validateOwnershipService.validateByUsername(userDetails.getUsername(), id);
+        resetUsersService.resetUsers(id);
+        return ResponseEntity.ok("Flag seed reset");
     }
 }

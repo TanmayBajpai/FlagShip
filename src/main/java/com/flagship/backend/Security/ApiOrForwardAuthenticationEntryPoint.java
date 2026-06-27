@@ -13,11 +13,10 @@ public class ApiOrForwardAuthenticationEntryPoint implements AuthenticationEntry
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         String uri = request.getRequestURI();
 
-        if (uri.startsWith("/auth") || uri.startsWith("/flags") || uri.startsWith("/evaluate") || uri.startsWith("/api")) {
+        if (uri.startsWith("/auth") || uri.startsWith("/flags") || uri.startsWith("/api")) {
             response.setContentType("application/json");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("unauthorized");
-
             return;
         }
 

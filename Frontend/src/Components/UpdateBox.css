@@ -1,150 +1,337 @@
-.box {
+/* ── Modal shell ── */
+.modal-box {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 1000;
-    color: rgb(255, 255, 255);
-    display: flex;
-    background-color: rgb(12, 12, 12);
-    flex-direction: column;
-    padding: 40px;
-    border: solid rgb(64, 64, 64);
-    border-width: 1px;
-    border-radius: 5px;
-    width: 50%;
+    background-color: rgb(14, 17, 24);
+    border: 1px solid rgb(40, 45, 58);
+    border-radius: 10px;
+    width: 52%;
+    max-height: 86vh;
+    overflow-y: auto;
+    padding: 32px 36px;
+    box-sizing: border-box;
+    color: white;
 }
 
-.title {
+.modal-title {
     font-family: monospace;
-    font-size: 25px;
+    font-size: 20px;
+    font-weight: 600;
     color: white;
-    border-bottom: solid white;
-    padding-bottom: 10px;
-    margin-bottom: 30px;
-    width: 100%;
+    border-bottom: 1px solid rgb(40, 45, 58);
+    padding-bottom: 16px;
+    margin-bottom: 26px;
+}
+
+.modal-form {
     display: flex;
+    flex-direction: column;
+}
+
+/* ── Standard fields ── */
+.field-label {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: rgb(130, 138, 158);
+    margin-bottom: 6px;
+}
+
+.field-input {
+    font-family: arial;
+    font-size: 14px;
+    height: 36px;
+    border-radius: 6px;
+    width: 100%;
+    padding: 0 12px;
+    border: 1px solid rgb(48, 53, 68);
+    background-color: rgb(22, 26, 36);
+    color: white;
+    box-sizing: border-box;
+    margin-bottom: 18px;
+    transition: border-color 0.15s ease;
+}
+
+.field-input:focus {
+    outline: none;
+    border-color: rgb(90, 98, 120);
+}
+
+/* ── Rules section ── */
+.rules-hint {
+    font-family: arial;
+    font-size: 12px;
+    color: rgb(100, 108, 128);
+    margin: -8px 0 14px;
+    line-height: 1.5;
+}
+
+.rules-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+.rule-block {
+    background-color: rgb(20, 24, 32);
+    border: 1px solid rgb(44, 50, 64);
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: opacity 0.2s ease;
+}
+
+.rule-block--off {
+    opacity: 0.45;
+}
+
+.rule-block-header {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
 }
 
-.update-form {
+.rule-block-header-left {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 10px;
 }
 
-.update-form-label {
+.rule-section-label {
     font-family: arial;
-    font-size: 17px;
-    margin-bottom: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: rgb(110, 118, 140);
 }
 
-.update-form-input {
+.rule-key-input {
     font-family: arial;
-    margin-bottom: 20px;
-    height: 30px;
-    border-radius: 5px;
+    font-size: 14px;
+    height: 34px;
+    border-radius: 6px;
+    padding: 0 10px;
+    border: 1px solid rgb(48, 53, 68);
+    background-color: rgb(26, 30, 42);
+    color: white;
     width: 100%;
-    padding: 5px 10px;
-    cursor: text;
-    border: none;
+    box-sizing: border-box;
 }
 
-.add-countries {
+.rule-key-input:focus {
+    outline: none;
+    border-color: rgb(80, 88, 110);
+}
+
+.add-value-row {
     display: flex;
-    width: 100%;
-    height: 30px;
+    gap: 8px;
+    align-items: center;
 }
 
-.update-form-country-input {
+.value-input {
     font-family: arial;
-    margin-bottom: 20px;
-    height: 30px;
-    border-radius: 5px;
-    width: 100%;
-    padding: 5px 10px;
-    cursor: text;
-    border: none;
-    cursor: default;
+    font-size: 14px;
+    flex: 1;
+    height: 34px;
+    border-radius: 6px;
+    padding: 0 10px;
+    border: 1px solid rgb(48, 53, 68);
+    background-color: rgb(26, 30, 42);
+    color: white;
+    box-sizing: border-box;
+    min-width: 0;
 }
 
-.add-button {
-    width: 30px;
-    background-color: rgb(255, 255, 255);
+.value-input:focus {
+    outline: none;
+    border-color: rgb(80, 88, 110);
+}
+
+.btn-add-value {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    background-color: white;
     border: none;
-    margin-left: 10px;
-    border-radius: 5px;
+    border-radius: 6px;
     font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
     transition: background-color 0.1s ease;
+    display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.btn-add-value:hover { background-color: rgb(215, 215, 215); }
+.btn-add-value:active { background-color: rgb(185, 185, 185); }
+
+.value-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.value-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: rgb(32, 37, 52);
+    border: 1px solid rgb(52, 58, 76);
+    color: rgb(190, 196, 215);
+    font-family: monospace;
+    font-size: 13px;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.btn-remove-chip {
+    background: transparent;
+    border: none;
+    color: rgb(160, 168, 190);
+    font-weight: 700;
+    font-size: 14px;
     cursor: pointer;
-}
-
-.add-button:hover {
-    background-color: rgb(213, 212, 212)
-}
-
-.add-button:active {
-    background-color: rgb(185, 185, 185)
-}
-
-.info {
-    font-family: arial;
-    margin-top: 15px;
-    font-size: 15px;
-    color: rgb(175, 175, 175);
-}
-
-.selected-countries {
-    margin-top: 10px;
+    padding: 0;
+    line-height: 1;
     display: flex;
     align-items: center;
 }
 
-.selected-country {
-    display: flex;
-    width: max-content;
-    background-color: white;
-    color: black;
-    margin-right: 10px;
-    padding: 5px 15px;
+.btn-remove-rule {
+    background-color: transparent;
+    border: 1px solid rgb(120, 42, 42);
+    color: rgb(190, 80, 80);
+    border-radius: 5px;
+    padding: 3px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: arial;
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
+}
+
+.btn-remove-rule:hover {
+    background-color: rgb(120, 42, 42);
+    color: white;
+}
+
+.btn-add-rule {
+    align-self: flex-start;
+    background-color: transparent;
+    border: 1px solid rgb(52, 58, 76);
+    color: rgb(160, 168, 190);
+    border-radius: 6px;
+    padding: 7px 14px;
+    cursor: pointer;
     font-family: arial;
     font-size: 13px;
-    align-items: center;
-    border-radius: 15px;
+    margin-top: 2px;
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.remove-country-button {
-    margin-left: 10px;
-    background-color: white;
-    border: none;
-    cursor: pointer;
-    color: black;
-    font-weight: 600;
-}
-
-.buttons {
-    margin-top: 30px;
-    display: flex;
-    justify-content: right;
-}
-
-.cancel-button {
-    cursor: pointer;
-    padding: 10px 15px;
-    border: solid white;
-    background: transparent;
+.btn-add-rule:hover {
+    background-color: rgb(26, 30, 42);
     color: white;
-    border-width: 2px;
-    margin-right: 20px;
-    border-radius: 10px;
 }
 
-.submit-button {
+/* ── Toggle (reused in rule blocks) ── */
+.toggle-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
     cursor: pointer;
-    padding: 10px 15px;
+}
+
+.toggle-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-track {
+    position: absolute;
+    inset: 0;
+    background-color: rgb(50, 56, 72);
+    border-radius: 20px;
+    transition: background-color 0.2s ease;
+}
+
+.toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 14px;
+    height: 14px;
+    background-color: rgb(120, 128, 148);
+    border-radius: 50%;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.toggle-switch input:checked ~ .toggle-track {
+    background-color: rgb(34, 160, 85);
+}
+
+.toggle-switch input:checked ~ .toggle-track .toggle-thumb {
+    transform: translateX(16px);
+    background-color: white;
+}
+
+/* ── Footer ── */
+.form-error {
+    font-family: arial;
+    font-size: 13px;
+    color: rgb(210, 80, 80);
+    min-height: 18px;
+    margin: 6px 0 0;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.btn-cancel {
+    cursor: pointer;
+    padding: 9px 18px;
+    border: 1px solid rgb(52, 58, 76);
+    background: transparent;
+    color: rgb(160, 168, 190);
+    border-radius: 8px;
+    font-family: arial;
+    font-size: 14px;
+    transition: background-color 0.15s ease;
+}
+
+.btn-cancel:hover { background-color: rgb(26, 30, 42); }
+
+.btn-submit {
+    cursor: pointer;
+    padding: 9px 18px;
     border: none;
     background-color: white;
-    color: rgb(0, 0, 0);
-    border-radius: 10px;
+    color: rgb(14, 17, 24);
+    border-radius: 8px;
+    font-family: arial;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.15s ease;
 }
+
+.btn-submit:hover { background-color: rgb(220, 222, 228); }

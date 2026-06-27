@@ -1,8 +1,8 @@
 package com.flagship.backend.Controllers;
 
-import com.flagship.backend.DTO.LoginUserRequest;
-import com.flagship.backend.DTO.RegisterUserRequest;
-import com.flagship.backend.DTO.UserInfo;
+import com.flagship.backend.DTO.LoginRequest;
+import com.flagship.backend.DTO.RegisterRequest;
+import com.flagship.backend.DTO.UserDTO;
 import com.flagship.backend.Entities.User;
 import com.flagship.backend.Respositories.UserRepository;
 import com.flagship.backend.Services.RegisterUserService;
@@ -37,56 +37,35 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterUserRequest registerUserRequest) {
-        registerUserService.register(registerUserRequest);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body("User registered successfully");
-
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest registerRequest) {
+        registerUserService.register(registerRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginUserRequest loginUserRequest, HttpServletRequest httpServletRequest) {
-
-        String username = loginUserRequest.username();
-        String password = loginUserRequest.password();
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password);
-
+    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest, HttpServletRequest httpServletRequest) {
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+                loginRequest.username(), loginRequest.password());
         try {
             Authentication authentication = authenticationManager.authenticate(token);
-
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
             HttpSession session = httpServletRequest.getSession(true);
             session.setAttribute(
                     HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                     SecurityContextHolder.getContext()
             );
-
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body("Logged in");
+            return ResponseEntity.ok("Logged in");
         } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body("Bad Credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Bad Credentials");
         }
     }
 
     @GetMapping("/me")
     public ResponseEntity<?> me(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails == null) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body("Unauthorized");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
-
         Optional<User> user = userRepository.findUserByUsername(userDetails.getUsername());
-
-        UserInfo userInfo = new UserInfo(user.get());
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(userInfo);
+        return ResponseEntity.ok(UserDTO.from(user.get()));
     }
 }

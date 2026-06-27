@@ -10,5 +10,5 @@ public class UpdateFlagRequest {
     private String description;
     private Boolean enabled;
     private Integer rolloutPercent;
-    private List<String> allowedCountries;
+    private List<TargetingRuleDTO> targetingRules;
 }

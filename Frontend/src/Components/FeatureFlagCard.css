@@ -1,151 +1,354 @@
-* {
-  cursor: default;
-}
+* { cursor: default; }
 
+/* ── Card shell ── */
 .flag-container {
-  background-color: rgb(20, 23, 30);
+  background-color: rgb(16, 19, 26);
+  border: 1px solid rgb(38, 42, 54);
+  border-radius: 10px;
   color: white;
-  margin-bottom: 10px;
   width: 70%;
-  padding: 30px;
+  margin-bottom: 14px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-.name-container {
+/* ── Header ── */
+.flag-header {
   display: flex;
-  margin-bottom: 20px;
-  border-bottom: solid white;
-  border-width: 1px;
-  padding-bottom: 20px;
   align-items: center;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid rgb(38, 42, 54);
 }
 
 .flag-name {
   font-family: monospace;
-  font-size: 20px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
 }
 
-.flag-description {
-  font-size: 18px;
-  font-family: "inter";
-  margin-bottom: 10px;
+.flag-header-actions {
   display: flex;
   align-items: center;
-}
-
-.flag-rollout-percent {
-  font-size: 15px;
-  font-family: monospace;
-  display: flex;
-  align-items: center;
-  margin-top: 10px;
-}
-
-.flag-allowed-countries {
-  font-size: 15px;
-  font-family: monospace;
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-}
-
-.flag-improvement {
-  font-size: 15px;
-  font-family: monospace;
-  display: flex;
-  align-items: center;
-  margin-top: 10px;
-}
-
-.percent-image {
-  height: 15px;
-  filter: invert(0.5);
-  margin-right: 10px;
-}
-
-.world-image {
-  height: 16px;
-  filter: invert(0.5);
-  margin-right: 8px;
-}
-
-.graph-image,
-.feature-image,
-.control-image {
-  height: 16px;
-  filter: invert(0.5);
-  margin-right: 10px;
-}
-
-.edit-button {
-  height: 22px;
-  filter: invert(0.6);
+  gap: 4px;
   margin-left: auto;
-  transition: filter 0.2s ease;
-  cursor: pointer;
 }
 
-.edit-button:hover {
-  filter: invert(1);
-}
-
-.countries {
+.icon-btn {
   display: flex;
-}
-
-.delete-button {
-  height: 22px;
-  filter: invert(0.6);
-  margin-left: 20px;
-  margin-right: 20px;
-  transition: filter 0.2s ease;
-  cursor: pointer;
-}
-
-.delete-button:hover {
-  filter: brightness(0) saturate(60%) invert(12%) sepia(100%) saturate(3000%) hue-rotate(0deg);
-}
-
-.flag-buttons {
-  display: flex;
-  margin-top: 40px;
-  justify-content: end;
-}
-
-.flag-button-reset,
-.flag-button-id {
-  margin-left: 20px;
-  padding: 10px;
-  border-radius: 10px;
-  font-family: arial;
-  cursor: pointer;
-  transition: background-color 0.1s ease;
-}
-
-.flag-button-reset {
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
   background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.icon-img {
+  width: 19px;
+  height: 19px;
+  filter: invert(0.45);
+  transition: filter 0.15s ease;
+  display: block;
+}
+
+.edit-btn:hover { background-color: rgb(30, 34, 48); border-color: rgb(50, 55, 72); }
+.edit-btn:hover .icon-img { filter: invert(0.85); }
+
+.delete-btn:hover { background-color: rgb(60, 22, 22); border-color: rgb(100, 38, 38); }
+.delete-btn:hover .icon-img {
+  filter: brightness(0) saturate(100%) invert(35%) sepia(70%) saturate(2500%) hue-rotate(330deg);
+}
+
+/* ── Description ── */
+.flag-description {
+  padding: 10px 22px 0;
+  font-family: arial;
+  font-size: 13px;
+  color: rgb(150, 155, 170);
+  line-height: 1.45;
+}
+
+/* ── Top stats bar ── */
+.flag-topbar {
+  display: flex;
+  align-items: center;
+  padding: 14px 22px;
+  border-bottom: 1px solid rgb(38, 42, 54);
+}
+
+.topbar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.topbar-divider {
+  width: 1px;
+  height: 30px;
+  background-color: rgb(38, 42, 54);
+  margin: 0 20px;
+  flex-shrink: 0;
+}
+
+.topbar-label {
+  font-family: arial;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: rgb(100, 108, 128);
+}
+
+.topbar-value {
+  font-family: monospace;
+  font-size: 20px;
+  font-weight: 700;
   color: white;
-  border: solid white;
-  border-width: 1px;
 }
 
-.flag-button-id:hover {
-  background-color: rgb(199, 199, 199);
+.stat-green      { color: rgb(72, 199, 116); }
+.stat-red        { color: rgb(220, 80, 80); }
+.stat-muted      { color: rgb(80, 88, 108); }
+.stat-muted-bright { color: rgb(160, 168, 190); }
+
+/* ── Conversion metrics ── */
+.flag-metrics {
+  padding: 14px 22px;
+  border-bottom: 1px solid rgb(38, 42, 54);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.flag-button-reset:hover {
-  background-color: rgb(50, 50, 50);
+.metrics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
 }
 
-.lift-red {
-  color: rgb(255, 100, 100);
+.metrics-legend {
+  font-family: arial;
+  font-size: 11px;
+  color: rgb(75, 82, 102);
 }
 
-.lift-green {
-  color: rgb(100, 255, 100);
+.metric-row {
+  display: grid;
+  grid-template-columns: 60px 80px 1fr;
+  align-items: center;
+  gap: 10px;
 }
 
-.lift-grey {
-  color: rgb(189, 189, 189);
+.metric-group-label {
+  font-family: arial;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.flag-label    { color: rgb(72, 199, 116); }
+.control-label { color: rgb(130, 138, 160); }
+
+.metric-counts {
+  font-family: monospace;
+  font-size: 12px;
+  color: rgb(130, 138, 160);
+  white-space: nowrap;
+}
+
+.metric-rate {
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.metric-bar-track {
+  height: 6px;
+  background-color: rgb(28, 32, 44);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.metric-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.bar-flag    { background-color: rgb(48, 160, 90); }
+.bar-control { background-color: rgb(70, 78, 100); }
+
+.metrics-empty {
+  font-family: arial;
+  font-size: 12px;
+  color: rgb(70, 78, 100);
+  font-style: italic;
+  margin: 2px 0 0;
+}
+
+/* ── Targeting rules section ── */
+.flag-rules-section {
+  padding: 14px 22px;
+  border-bottom: 1px solid rgb(38, 42, 54);
+}
+
+.flag-rules-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.section-label {
+  font-family: arial;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: rgb(100, 108, 128);
+}
+
+.rules-summary {
+  font-family: arial;
+  font-size: 12px;
+  color: rgb(90, 98, 118);
+}
+
+.rules-empty {
+  font-family: arial;
+  font-size: 13px;
+  color: rgb(80, 88, 108);
+  font-style: italic;
+  margin: 0;
+}
+
+.rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Rule row ── */
+.rule-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background-color: rgb(22, 26, 34);
+  border: 1px solid rgb(38, 42, 54);
+  border-radius: 7px;
+  transition: opacity 0.2s ease;
+}
+
+.rule-row--off {
+  opacity: 0.38;
+}
+
+.rule-key {
+  font-family: monospace;
+  font-size: 13px;
+  color: rgb(190, 195, 210);
+  min-width: 90px;
+  white-space: nowrap;
+}
+
+.rule-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.rule-chip {
+  background-color: rgb(32, 37, 50);
+  color: rgb(160, 168, 190);
+  font-family: monospace;
+  font-size: 12px;
+  padding: 2px 9px;
+  border-radius: 20px;
+  border: 1px solid rgb(50, 56, 72);
+}
+
+/* ── Toggle switch ── */
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.toggle-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background-color: rgb(50, 56, 72);
+  border-radius: 20px;
+  transition: background-color 0.2s ease;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  background-color: rgb(140, 148, 168);
+  border-radius: 50%;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.toggle-switch input:checked ~ .toggle-track {
+  background-color: rgb(34, 160, 85);
+}
+
+.toggle-switch input:checked ~ .toggle-track .toggle-thumb {
+  transform: translateX(16px);
+  background-color: white;
+}
+
+.toggle-switch input:disabled ~ .toggle-track {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Footer ── */
+.flag-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 22px;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgb(48, 53, 68);
+  color: rgb(150, 158, 178);
+  font-family: arial;
+  font-size: 13px;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-ghost:hover {
+  background-color: rgb(30, 34, 46);
+  color: rgb(210, 215, 230);
 }

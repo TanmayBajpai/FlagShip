@@ -1,114 +1,180 @@
-import { useEffect, useState } from "react";
+import { useState } from "react"
 import "./FeatureFlagCard.css"
 
-function FeatureFlagCard({ flag, setChanged, setUpdateBox, setOverlay, setFlag, setShowFlagId }) {
+function FeatureFlagCard({ flag, setChanged, setUpdateBox, setOverlay, setFlag, setShowFlagId, showToast }) {
 
-    const [name, setName] = useState("not found")
-    const [description, setDescription] = useState("")
-    const [rollout, setRollout] = useState(0)
-    const [allowedCountries, setAllowedCountries] = useState([])
-    const [lift, setLift] = useState("Unavailable")
+    const [toggling, setToggling] = useState(false)
 
-    useEffect(() => {
-        setName(flag.flagName)
-        setDescription(flag.description)
-        setRollout(flag.rolloutPercent)
-        setAllowedCountries(flag.allowedCountries)
+    const rules = flag.targetingRules || []
+    const activeRules = rules.filter(r => r.enabled).length
 
-        if (flag.rolloutPercent > 0 && flag.withFlagSuccess > 0 && flag.withoutFlagSuccess) {
-            setLift(((flag.withFlagSuccess / flag.withoutFlagSuccess) * ((100 - flag.rolloutPercent) / flag.rolloutPercent)).toFixed(2))
-        }
-    }, [flag])
+    const rollout = flag.rolloutPercent
+    const flagConv = flag.flagConversions || 0
+    const controlConv = flag.controlConversions || 0
+
+    const flagNorm = rollout > 0 ? flagConv / rollout : null
+    const controlNorm = rollout < 100 ? controlConv / (100 - rollout) : null
+    const lift = (flagNorm !== null && controlNorm !== null && controlNorm > 0)
+        ? (flagNorm - controlNorm) / controlNorm * 100
+        : null
+    const maxConv = Math.max(flagConv, controlConv, 1)
+
+    function fmtNum(n) { return (n || 0).toLocaleString() }
 
     async function deleteFlag(id) {
         try {
-            const response = await fetch(`/flags/delete-flag/${id}`, {
-                method: "DELETE",
-                credentials: "include"
-            })
-
-            if (!response.ok) {
-                alert("Invalid request")
-                return
-            }
-
-            alert("Flag deleted")
-            setChanged((prev) => !prev)
-        } catch (error) {
-            alert("Server error!")
+            const response = await fetch(`/flags/${id}`, { method: "DELETE", credentials: "include" })
+            if (!response.ok) { showToast("Invalid request", "error"); return }
+            showToast("Flag deleted")
+            setChanged(p => !p)
+        } catch {
+            showToast("Server error!", "error")
         }
     }
 
     async function resetFlag(id) {
         try {
-            const response = await fetch(`/flags/reset-users/${id}`, {
+            const response = await fetch(`/flags/${id}/reset`, { method: "POST", credentials: "include" })
+            if (!response.ok) { showToast("Invalid request", "error"); return }
+            showToast("Flag users reset")
+            setChanged(p => !p)
+        } catch {
+            showToast("Server error!", "error")
+        }
+    }
+
+    async function toggleRule(key) {
+        if (toggling) return
+        setToggling(true)
+        const updatedRules = rules.map(r => ({
+            key: r.key,
+            values: r.values,
+            enabled: r.key === key ? !r.enabled : r.enabled
+        }))
+        try {
+            await fetch(`/flags/${flag.id}`, {
                 method: "PUT",
-                credentials: "include"
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ targetingRules: updatedRules })
             })
-
-            if (!response.ok) {
-                alert("Invalid request")
-                return
-            }
-
-            alert("Flag users reset")
-            setChanged((prev) => !prev)
-        } catch (error) {
-            alert("Server error!")
+            setChanged(p => !p)
+        } catch {
+            showToast("Server error!", "error")
+        } finally {
+            setToggling(false)
         }
     }
 
     return (
-        <>
-            <div className="flag-container">
-                <div className="name-container">
-                    <div className="flag-name">{name}</div>
-                    <img src="/edit.png" className="edit-button" onClick={() => {
-                        setUpdateBox(true)
-                        setOverlay(true)
-                        setFlag(flag)
-                    }}></img>
-                    <img src="/delete.png" className="delete-button" onClick={() => deleteFlag(flag.id)}></img>
-                </div>
+        <div className="flag-container">
 
-                <div className="flag-description">
-                    {description}
-                </div>
-
-                <div className="flag-rollout-percent">
-                    <img src="/percentage.png" className="percent-image"></img>
-                    Rollout Percent: [{rollout}%]
-                </div>
-
-                <div className="flag-allowed-countries">
-                    <img src="/world.png" className="world-image"></img>
-                    Allowed Countries: [{allowedCountries.length === 0 ?
-                        <div>ALL COUNTRIES ALLOWED</div> :
-                        <div className="countries">{allowedCountries.join(", ")}</div>
-                    }]
-                </div>
-
-                <div className="flag-improvement">
-                    <img src="/graph.png" className="graph-image"></img>
-                    Success Rate Ratio (Feature vs Control): [{lift}]
-                </div>
-
-                <div className="flag-buttons">
-                    <button className="flag-button-reset" onClick={() => {
-                        resetFlag(flag.id)
-                    }}>
-                        Reset Users
+            <div className="flag-header">
+                <div className="flag-name">{flag.flagName}</div>
+                <div className="flag-header-actions">
+                    <button className="icon-btn edit-btn" title="Edit" onClick={() => { setUpdateBox(true); setOverlay(true); setFlag(flag) }}>
+                        <img src="/edit.png" className="icon-img" alt="edit" />
                     </button>
-                    <button className="flag-button-id" onClick={() => {
-                        setFlag(flag)
-                        setOverlay(true)
-                        setShowFlagId(true)
-                    }}>
-                        Show Flag Id
+                    <button className="icon-btn delete-btn" title="Delete" onClick={() => deleteFlag(flag.id)}>
+                        <img src="/delete.png" className="icon-img" alt="delete" />
                     </button>
                 </div>
             </div>
-        </>
+
+            {flag.description && (
+                <div className="flag-description">{flag.description}</div>
+            )}
+
+            <div className="flag-topbar">
+                <div className="topbar-item">
+                    <span className="topbar-label">Rollout</span>
+                    <span className="topbar-value">{flag.rolloutPercent}%</span>
+                </div>
+                <div className="topbar-divider" />
+                <div className="topbar-item">
+                    <span className="topbar-label">Conversions</span>
+                    <span className="topbar-value">{fmtNum(flagConv + controlConv)}</span>
+                </div>
+                <div className="topbar-divider" />
+                <div className="topbar-item">
+                    <span className="topbar-label">Lift</span>
+                    <span className={`topbar-value ${lift === null ? "stat-muted" : lift >= 0 ? "stat-green" : "stat-red"}`}>
+                        {lift === null ? "—" : (lift >= 0 ? "+" : "") + lift.toFixed(1) + "%"}
+                    </span>
+                </div>
+            </div>
+
+            <div className="flag-metrics">
+                <div className="metrics-header">
+                    <span className="section-label">Conversion Metrics</span>
+                    <span className="metrics-legend">conversions</span>
+                </div>
+                <div className="metric-row">
+                    <span className="metric-group-label flag-label">Flag</span>
+                    <span className="metric-counts">{fmtNum(flagConv)}</span>
+                    <div className="metric-bar-track">
+                        <div className="metric-bar-fill bar-flag" style={{ width: `${(flagConv / maxConv) * 100}%` }} />
+                    </div>
+                </div>
+                <div className="metric-row">
+                    <span className="metric-group-label control-label">Control</span>
+                    <span className="metric-counts">{fmtNum(controlConv)}</span>
+                    <div className="metric-bar-track">
+                        <div className="metric-bar-fill bar-control" style={{ width: `${(controlConv / maxConv) * 100}%` }} />
+                    </div>
+                </div>
+                {flagConv === 0 && controlConv === 0 && (
+                    <p className="metrics-empty">No data yet — call /api/success to start tracking</p>
+                )}
+            </div>
+
+            <div className="flag-rules-section">
+                <div className="flag-rules-header">
+                    <span className="section-label">Targeting Rules</span>
+                    <span className="rules-summary">
+                        {rules.length === 0
+                            ? "all users"
+                            : `${activeRules} / ${rules.length} active`}
+                    </span>
+                </div>
+
+                {rules.length === 0 ? (
+                    <p className="rules-empty">No rules — all users qualify</p>
+                ) : (
+                    <div className="rules-list">
+                        {rules.map((rule) => (
+                            <div key={rule.key} className={`rule-row${rule.enabled ? "" : " rule-row--off"}`}>
+                                <label className="toggle-switch" title={rule.enabled ? "Disable rule" : "Enable rule"}>
+                                    <input
+                                        type="checkbox"
+                                        checked={rule.enabled}
+                                        disabled={toggling}
+                                        onChange={() => toggleRule(rule.key)}
+                                    />
+                                    <span className="toggle-track">
+                                        <span className="toggle-thumb" />
+                                    </span>
+                                </label>
+                                <span className="rule-key">{rule.key}</span>
+                                <div className="rule-chips">
+                                    {(rule.values || []).map(v => (
+                                        <span key={v} className="rule-chip">{v}</span>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            <div className="flag-footer">
+                <button className="btn-ghost" onClick={() => resetFlag(flag.id)}>Reset Users</button>
+                <button className="btn-ghost" onClick={() => { setFlag(flag); setOverlay(true); setShowFlagId(true) }}>
+                    Show ID
+                </button>
+            </div>
+
+        </div>
     )
 }
 

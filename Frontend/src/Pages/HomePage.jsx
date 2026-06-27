@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import FeatureFlagCard from "../Components/FeatureFlagCard"
 import UpdateBox from "../Components/UpdateBox"
 import CreateBox from "../Components/CreateBox"
+import Toast from "../Components/Toast"
 import "./HomePage.css"
 
 function HomePage() {
@@ -15,6 +16,14 @@ function HomePage() {
     const [createBox, setCreateBox] = useState(false)
     const [flag, setFlag] = useState()
     const [showFlagId, setShowFlagId] = useState()
+    const [toast, setToast] = useState({ message: "", type: "success", visible: false })
+    const toastTimer = useRef(null)
+
+    function showToast(message, type = "success") {
+        clearTimeout(toastTimer.current)
+        setToast({ message, type, visible: true })
+        toastTimer.current = setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 2500)
+    }
 
     useEffect(() => {
         let mounted = true;
@@ -52,7 +61,7 @@ function HomePage() {
         let mounted = true
 
         async function fetchFlags() {
-            const response = await fetch("/flags/get-flags", {
+            const response = await fetch("/flags", {
                 method: "GET",
                 credentials: "include",
                 cache: "no-cache"
@@ -129,7 +138,7 @@ function HomePage() {
                     )}
 
                     <div className="feature-flags-container">
-                        {flags.map((flag) => (<FeatureFlagCard key={flag.id} flag={flag} setChanged={setChanged} setUpdateBox={setUpdateBox} setOverlay={setOverlay} setFlag={setFlag} setShowFlagId={setShowFlagId}/>))}
+                        {flags.map((flag) => (<FeatureFlagCard key={flag.id} flag={flag} setChanged={setChanged} setUpdateBox={setUpdateBox} setOverlay={setOverlay} setFlag={setFlag} setShowFlagId={setShowFlagId} showToast={showToast}/>))}
                     </div>
                 </div>
             </div>
@@ -149,7 +158,7 @@ function HomePage() {
                         <p>{apiKey}</p>
                         <button className="copy-button" onClick={() => {
                             navigator.clipboard.writeText(apiKey)
-                            alert("API Key copied")
+                            showToast("API Key copied")
                         }}>
                             <img src="/copy.png"></img>
                         </button>
@@ -174,7 +183,7 @@ function HomePage() {
                         <p>{flag.id}</p>
                         <button className="copy-button" onClick={() => {
                             navigator.clipboard.writeText(flag.id)
-                            alert("Flag ID copied")
+                            showToast("Flag ID copied")
                         }}>
                             <img src="/copy.png"></img>
                         </button>
@@ -184,8 +193,10 @@ function HomePage() {
             )}
 
 
-            {createBox && (<CreateBox setOverlay={setOverlay} setBox={setCreateBox} setChanged={setChanged}/>)}
-            {updateBox && (<UpdateBox setOverlay={setOverlay} setBox={setUpdateBox} setChanged={setChanged} flag={flag}/>)}
+            {createBox && (<CreateBox setOverlay={setOverlay} setBox={setCreateBox} setChanged={setChanged} showToast={showToast}/>)}
+            {updateBox && (<UpdateBox setOverlay={setOverlay} setBox={setUpdateBox} setChanged={setChanged} flag={flag} showToast={showToast}/>)}
+
+            <Toast message={toast.message} type={toast.type} visible={toast.visible} />
 
         </>
     )

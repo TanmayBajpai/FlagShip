@@ -36,9 +36,17 @@ function RegisterPage() {
 
             if (response.status === 201) {
                 window.location.href = "/login";
+                return
+            }
+
+            try {
+                const body = await response.json()
+                setError(body.error || "Registration failed")
+            } catch {
+                setError("Registration failed")
             }
         } catch (error) {
-            console.log(error)
+            setError("Could not reach the server")
         }
     }
 

@@ -1,0 +1,46 @@
+{
+  "name": "flagship-sdk",
+  "version": "1.0.0",
+  "description": "Official JavaScript SDK for FlagShip — evaluate feature flags locally with zero latency.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "types": "index.d.ts",
+  "files": [
+    "src/client.js",
+    "src/evaluator.js",
+    "src/flagship.js",
+    "src/index.js",
+    "index.d.ts",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [
+    "feature-flags",
+    "feature-toggles",
+    "a/b-testing",
+    "rollout",
+    "targeting",
+    "sdk",
+    "flagship"
+  ],
+  "author": "Tanmay Bajpai",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TanmayBajpai/Flagship.git",
+    "directory": "JS-SDK"
+  },
+  "bugs": {
+    "url": "https://github.com/TanmayBajpai/Flagship/issues"
+  },
+  "homepage": "https://github.com/TanmayBajpai/Flagship/tree/main/JS-SDK#readme"
+}

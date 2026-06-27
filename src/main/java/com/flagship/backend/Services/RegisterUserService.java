@@ -1,6 +1,6 @@
 package com.flagship.backend.Services;
 
-import com.flagship.backend.DTO.RegisterUserRequest;
+import com.flagship.backend.DTO.RegisterRequest;
 import com.flagship.backend.Entities.User;
 import com.flagship.backend.Exceptions.UsernameTakenException;
 import com.flagship.backend.Respositories.UserRepository;
@@ -19,9 +19,8 @@ public class RegisterUserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void register(RegisterUserRequest registerUserRequest) {
-
-        String normalized = registerUserRequest.username().trim();
+    public void register(RegisterRequest registerRequest) {
+        String normalized = registerRequest.username().trim();
 
         if (userRepository.existsByUsername(normalized)) {
             throw new UsernameTakenException();
@@ -29,9 +28,8 @@ public class RegisterUserService {
 
         User user = new User();
         user.setUsername(normalized);
-        user.setPassword(passwordEncoder.encode(registerUserRequest.password()));
-        String apiKey = HashUtil.generateApiKey();
-        user.setApiKey(apiKey);
+        user.setPassword(passwordEncoder.encode(registerRequest.password()));
+        user.setApiKey(HashUtil.generateApiKey());
 
         userRepository.save(user);
     }

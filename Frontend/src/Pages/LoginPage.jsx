@@ -95,7 +95,7 @@ function LoginPage() {
 
                         <p className="error">{error}</p>
 
-                        <button className="create-account-button" onClick={() => login(username, password)}>Sing in</button>
+                        <button className="create-account-button" onClick={() => login(username, password)}>Sign in</button>
 
                         <div className="sign-in-prompt">
                             <p>Do not have an account?</p>

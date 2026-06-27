@@ -12,5 +12,5 @@ public class CreateFlagRequest {
     private String description;
     private boolean enabled;
     private int rolloutPercent;
-    private List<String> allowedCountries;
+    private List<TargetingRuleDTO> targetingRules;
 }

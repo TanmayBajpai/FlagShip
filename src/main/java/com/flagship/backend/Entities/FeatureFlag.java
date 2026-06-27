@@ -2,10 +2,10 @@ package com.flagship.backend.Entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "feature_flags")
@@ -28,10 +28,10 @@ public class FeatureFlag {
     @Column(nullable = false)
     private int rolloutPercent;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "feature_flag_countries", joinColumns = @JoinColumn(name = "flag_id"))
-    @Column(name = "allowed_countries")
-    private List<String> allowedCountries = new ArrayList<>();
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = "flag", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<TargetingRule> targetingRules = new ArrayList<>();
 
     @Column(nullable = false)
     private String seed;
@@ -40,8 +40,8 @@ public class FeatureFlag {
     private String owner;
 
     @Column(nullable = false)
-    private int withFlagSuccess;
+    private long flagConversions;
 
     @Column(nullable = false)
-    private int withoutFlagSuccess;
+    private long controlConversions;
 }
