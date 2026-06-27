@@ -58,26 +58,48 @@ Track conversions and compare:
 
 SDK clients authenticate using API keys generated from the dashboard.
 
-### JavaScript SDK
+### Official SDKs
 
-Official SDK for local flag evaluation:
+| SDK        | Package                                    | Language                |
+| ---------- | ------------------------------------------ | ----------------------- |
+| JavaScript | `@tanmaybajpai/flagship-js-sdk`            | JavaScript / TypeScript |
+| Java       | `io.github.tanmaybajpai:flagship-java-sdk` | Java 17+                |
+
+#### JavaScript SDK
 
 ```bash
 npm install @tanmaybajpai/flagship-js-sdk
+```
+
+#### Java SDK
+
+```xml
+<repositories>
+    <repository>
+        <id>github</id>
+        <url>https://maven.pkg.github.com/TanmayBajpai/Flagship</url>
+    </repository>
+</repositories>
+
+<dependency>
+    <groupId>io.github.tanmaybajpai</groupId>
+    <artifactId>flagship-java-sdk</artifactId>
+    <version>1.0.0</version>
+</dependency>
 ```
 
 ---
 
 ## Technology Stack
 
-| Component | Technology                  |
-| --------- | --------------------------- |
-| Frontend  | React, Vite                 |
-| Backend   | Spring Boot, Java 17        |
-| Database  | MariaDB                     |
-| ORM       | Hibernate / Spring Data JPA |
-| Security  | Spring Security             |
-| Build     | Maven                       |
+| Component | Technology                         |
+| --------- | ---------------------------------- |
+| Frontend  | React, Vite                        |
+| Backend   | Spring Boot, Java 17               |
+| Database  | MySQL-compatible (MySQL / MariaDB) |
+| ORM       | Hibernate / Spring Data JPA        |
+| Security  | Spring Security                    |
+| Build     | Maven                              |
 
 ---
 
@@ -87,9 +109,11 @@ npm install @tanmaybajpai/flagship-js-sdk
 
 * Java 17+
 * Node.js 18+
-* MariaDB
+* MySQL-compatible database
 
-Create the database:
+### Database Setup
+
+Create a database and user:
 
 ```sql
 CREATE DATABASE featureflagsdb;
@@ -100,6 +124,20 @@ IDENTIFIED BY 'flagship-password';
 GRANT ALL PRIVILEGES
 ON featureflagsdb.*
 TO 'flagship-user'@'localhost';
+```
+
+Configure your datasource in:
+
+```text
+src/main/resources/application.properties
+```
+
+Example MySQL configuration:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/featureflagsdb
+spring.datasource.username=flagship-user
+spring.datasource.password=flagship-password
 ```
 
 ### Run Backend
@@ -142,6 +180,14 @@ src/main/resources/static/
 
 ## JavaScript SDK
 
+Install:
+
+```bash
+npm install @tanmaybajpai/flagship-js-sdk
+```
+
+Usage:
+
 ```javascript
 import FlagShip from '@tanmaybajpai/flagship-js-sdk';
 
@@ -160,6 +206,8 @@ const enabled = await flagship.evaluate(
     country: 'US'
   }
 );
+
+console.log(enabled);
 ```
 
 Track a conversion event:
@@ -168,7 +216,66 @@ Track a conversion event:
 await flagship.trackSuccess('user-123');
 ```
 
-See the SDK documentation for the complete API reference.
+---
+
+## Java SDK
+
+Add the dependency:
+
+```xml
+<repositories>
+    <repository>
+        <id>github</id>
+        <url>https://maven.pkg.github.com/TanmayBajpai/Flagship</url>
+    </repository>
+</repositories>
+
+<dependency>
+    <groupId>io.github.tanmaybajpai</groupId>
+    <artifactId>flagship-java-sdk</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+Usage:
+
+```java
+import com.flagship.sdk.FlagShip;
+
+import java.util.Map;
+
+public class Main {
+
+    public static void main(String[] args) throws Exception {
+
+        FlagShip flagship = new FlagShip(
+                "your-api-key",
+                "https://your-server.com"
+        );
+
+        flagship.init();
+
+        boolean enabled = flagship.evaluate(
+                "new-checkout",
+                "user-123",
+                Map.of(
+                        "plan", "pro",
+                        "country", "US"
+                )
+        );
+
+        System.out.println(enabled);
+    }
+}
+```
+
+Track a conversion event:
+
+```java
+flagship.trackSuccess("user-123");
+```
+
+Both SDKs use local evaluation, deterministic sticky bucketing, targeting rules, cached configuration, and automatic refresh polling.
 
 ---
 
