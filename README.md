@@ -1,25 +1,31 @@
 # 🚀 FlagShip - Feature Flag Management Platform
 
-A full-stack feature flag management system with **React frontend** and **Spring Boot + MySQL backend**.  
-Developers can create, update, and manage feature flags, then evaluate them via an API that returns a boolean value using **sticky deterministic bucketing**.
+A full-stack feature flag management platform built on an **SDK-first architecture**. Developers register an account, create feature flags with targeting rules, then integrate the FlagShip JS SDK into their application. The SDK fetches all flag configuration once on startup, caches it locally, and evaluates flags in-process — no per-request network calls.
 
 ---
 
 ## ✨ Features
-- 🔑 User authentication (signup/login)
-- 🏷️ CRUD operations for feature flags  
-- ⚙️ Configurable attributes: name, description, rollout percentage, allowed countries  
-- 🧮 Deterministic rollout evaluation (sticky bucketing)  
-- 🌍 Country-based targeting  
-- 🔐 API key authentication for external apps  
-- 📡 REST API returns `true/false` on feature evaluation  
+- 🔑 User authentication (register / login)
+- 🏷️ Full CRUD for feature flags — name, description, rollout percentage
+- 🎯 Generic attribute-based targeting rules (match any key-value pair, e.g. `plan`, `country`, `deviceType`)
+- 🧮 Deterministic sticky bucketing — same user always gets the same result
+- 🔄 Per-flag user reset — regenerates the bucketing seed to reshuffle assignments
+- 📊 Conversion analytics — track flag vs. control conversions and measure lift
+- 🔐 API key authentication for SDK and external integrations
+- 📦 [Official JS SDK](./JS-SDK) for in-process, zero-latency flag evaluation
 
 ---
 
 ## 🛠️ Tech Stack
-- **Frontend:** React  
-- **Backend:** Spring Boot  
-- **Database:** MySQL  
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, Vite 7, React Router DOM 7 |
+| Backend | Spring Boot 3.5.5, Java 17 |
+| Database | MariaDB |
+| ORM | Spring Data JPA / Hibernate |
+| Security | Spring Security (session-based dashboard + API key for SDK) |
+| Build | Maven |
 
 ---
 
@@ -28,52 +34,104 @@ Developers can create, update, and manage feature flags, then evaluate them via 
 ### Prerequisites
 - Java 17+
 - Node.js 18+
-- MySQL running locally or on cloud
+- MariaDB running on `localhost:3306`
 
-### Backend (Spring Boot)
-cd backend  
-./mvnw spring-boot:run  
+Create a database and user:
+```sql
+CREATE DATABASE featureflagsdb;
+CREATE USER 'flagship-user'@'localhost' IDENTIFIED BY 'flagship-password';
+GRANT ALL PRIVILEGES ON featureflagsdb.* TO 'flagship-user'@'localhost';
+```
 
+### Running the backend
+```bash
+./mvnw spring-boot:run
+```
 
-### ⚠️ The frontend is bundled and served from the Spring Boot app. It does not need to be run seperately
+The backend serves the built React app as static files on port 8080. You do not need to run the frontend separately in production.
 
+### Frontend dev server (optional — hot reload only)
+```bash
+cd Frontend
+npm install
+npm run dev   # starts on :5173, proxies API calls to :8080
+```
 
-### Frontend (React)
-cd frontend  
-npm install  
-npm start  
+### Building the frontend
+```bash
+cd Frontend && npm run build
+# copy dist/* to src/main/resources/static/
+```
 
 ---
 
-## 📖 API Usage
+## 📖 SDK Usage
 
-### Authentication
-Each user is issued an **API Key** after login.  
-Pass this key in the request header when evaluating a feature flag.
+The recommended integration is via the [JS SDK](./JS-SDK):
 
-### Evaluate Feature Flag
-**Endpoint:**  
-`GET /api/evaluate/{id}`  
+```bash
+npm install flagship-sdk
+```
 
-**Headers:**  
-X-API-Key: your-api-key  
+```js
+import FlagShip from 'flagship-sdk';
 
-**Request example:**  
-GET /api/evaluate/550e8400-e29b-41d4-a716-446655440000?userId=user123&userCountry=IN  
+const flagship = new FlagShip({
+  apiKey: 'your-api-key',             // from the FlagShip dashboard
+  baseUrl: 'https://your-server.com',
+});
 
-**Response:**  
-true
+await flagship.init();
 
+const enabled = await flagship.evaluate('new-checkout', 'user-123', {
+  plan: 'pro',
+  country: 'US'
+});
+
+// record a conversion event
+await flagship.trackSuccess('user-123');
+```
+
+See [`JS-SDK/README.md`](./JS-SDK/README.md) for the full SDK reference.
+
+---
+
+## 📡 REST API (direct integration)
+
+All SDK endpoints require the `X-API-Key` header.
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/config` | Returns all flag configs for the account |
+| `POST` | `/api/success?userId=X` | Records a conversion event for a user |
+
+Dashboard endpoints (session cookie required) are documented in [`CLAUDE.md`](.claude/CLAUDE.md).
 
 ---
 
 ## 🧮 How Sticky Bucketing Works
-1. The system hashes `userId + featureId + salt`.  
-2. Hash is mapped into a bucket `0–99`.  
-3. If bucket < rollout percentage → feature enabled.  
-4. Country filters and whitelist rules override rollout logic.  
 
-This ensures the same user consistently receives the same result.
+1. Build input string: `userId + "|" + flagName + "|" + seed`
+2. SHA-256 hash the string
+3. Take the first 8 bytes as an unsigned 64-bit integer
+4. `bucket = value % 100`
+5. If `bucket < rolloutPercent` → flag is enabled for this user
+
+The `seed` is a random value stored per-flag. Resetting a flag's users (via the dashboard) regenerates the seed, reshuffling all bucket assignments without changing the rollout percentage. The same algorithm runs in the JS SDK and in the server's legacy evaluate endpoint.
+
+---
+
+## 📊 Conversion Analytics
+
+Calling `POST /api/success?userId=X` checks every flag owned by the account and increments `flagConversions` (user is in the flag bucket) or `controlConversions` (user is in control) on each one.
+
+The dashboard displays **lift**, computed as:
+
+```
+flagNorm    = flagConversions    / rolloutPercent
+controlNorm = controlConversions / (100 - rolloutPercent)
+lift        = (flagNorm - controlNorm) / controlNorm × 100
+```
 
 ---
 
@@ -85,7 +143,5 @@ This ensures the same user consistently receives the same result.
 ### Dashboard
 <img width="1901" height="980" alt="Screenshot_20250920_201325" src="https://github.com/user-attachments/assets/e13016a1-0ff1-41f3-b565-385cf27d77e4" />
 
-### Creating new Feature Flag
+### Creating a Feature Flag
 <img width="1901" height="977" alt="Screenshot_20250920_201347" src="https://github.com/user-attachments/assets/947d5533-af61-4dd7-b29d-4dfd33ed5df1" />
-
-
