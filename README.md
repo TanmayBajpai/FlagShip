@@ -247,7 +247,7 @@ Positive values indicate the feature outperformed the control group.
 
 ### Login
 
-![Login](docs/screenshots/ogin.png)
+![Login](docs/screenshots/login.png)
 
 ### Dashboard
 
