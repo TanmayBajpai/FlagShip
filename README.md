@@ -247,12 +247,12 @@ Positive values indicate the feature outperformed the control group.
 
 ### Login
 
-![Login](docs/login.png)
+![Login](docs/screenshots/ogin.png)
 
 ### Dashboard
 
-![Dashboard](docs/dashboard.png)
+![Dashboard](docs/screenshots/dashboard.png)
 
 ### Create Feature Flag
 
-![Create Feature Flag](docs/create-flag.png)
+![Create Feature Flag](docs/screenshots/create-flag.png)
