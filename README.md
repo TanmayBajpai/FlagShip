@@ -1,147 +1,258 @@
-# 🚀 FlagShip - Feature Flag Management Platform
+# FlagShip
 
-A full-stack feature flag management platform built on an **SDK-first architecture**. Developers register an account, create feature flags with targeting rules, then integrate the FlagShip JS SDK into their application. The SDK fetches all flag configuration once on startup, caches it locally, and evaluates flags in-process — no per-request network calls.
+Feature flag management platform built around an SDK-first architecture.
 
----
+FlagShip allows teams to create feature flags, define targeting rules, control rollouts, and measure experiment results. Applications evaluate flags locally through the SDK, avoiding runtime network calls and reducing latency.
 
-## ✨ Features
-- 🔑 User authentication (register / login)
-- 🏷️ Full CRUD for feature flags — name, description, rollout percentage
-- 🎯 Generic attribute-based targeting rules (match any key-value pair, e.g. `plan`, `country`, `deviceType`)
-- 🧮 Deterministic sticky bucketing — same user always gets the same result
-- 🔄 Per-flag user reset — regenerates the bucketing seed to reshuffle assignments
-- 📊 Conversion analytics — track flag vs. control conversions and measure lift
-- 🔐 API key authentication for SDK and external integrations
-- 📦 [Official JS SDK](./JS-SDK) for in-process, zero-latency flag evaluation
+## Architecture
 
----
+Unlike traditional feature flag systems that perform remote evaluation, FlagShip distributes configuration to SDK clients.
 
-## 🛠️ Tech Stack
+1. Application starts
+2. SDK fetches flag configuration from FlagShip
+3. Configuration is cached locally
+4. Flag evaluation happens entirely in-process
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 19, Vite 7, React Router DOM 7 |
-| Backend | Spring Boot 3.5.5, Java 17 |
-| Database | MariaDB |
-| ORM | Spring Data JPA / Hibernate |
-| Security | Spring Security (session-based dashboard + API key for SDK) |
-| Build | Maven |
+This provides:
+
+* Zero network latency during evaluation
+* Deterministic user assignments
+* Reduced backend load
+* Consistent behavior across requests
 
 ---
 
-## 📦 Installation & Setup
+## Features
 
-### Prerequisites
-- Java 17+
-- Node.js 18+
-- MariaDB running on `localhost:3306`
+### Feature Flags
 
-Create a database and user:
-```sql
-CREATE DATABASE featureflagsdb;
-CREATE USER 'flagship-user'@'localhost' IDENTIFIED BY 'flagship-password';
-GRANT ALL PRIVILEGES ON featureflagsdb.* TO 'flagship-user'@'localhost';
+* Create, update, and delete feature flags
+* Gradual percentage rollouts
+* Per-flag descriptions and metadata
+* Deterministic sticky bucketing
+* User reassignment through seed resets
+
+### Targeting Rules
+
+Target users using arbitrary attributes:
+
+```json
+{
+  "plan": "pro",
+  "country": "US",
+  "deviceType": "mobile"
+}
 ```
 
-### Running the backend
+Rules can match any attribute supplied by the SDK.
+
+### Experiment Analytics
+
+Track conversions and compare:
+
+* Treatment group conversions
+* Control group conversions
+* Relative lift percentage
+
+### SDK Authentication
+
+SDK clients authenticate using API keys generated from the dashboard.
+
+### JavaScript SDK
+
+Official SDK for local flag evaluation:
+
+```bash
+npm install @tanmaybajpai/flagship-js-sdk
+```
+
+---
+
+## Technology Stack
+
+| Component | Technology                  |
+| --------- | --------------------------- |
+| Frontend  | React, Vite                 |
+| Backend   | Spring Boot, Java 17        |
+| Database  | MariaDB                     |
+| ORM       | Hibernate / Spring Data JPA |
+| Security  | Spring Security             |
+| Build     | Maven                       |
+
+---
+
+## Getting Started
+
+### Requirements
+
+* Java 17+
+* Node.js 18+
+* MariaDB
+
+Create the database:
+
+```sql
+CREATE DATABASE featureflagsdb;
+
+CREATE USER 'flagship-user'@'localhost'
+IDENTIFIED BY 'flagship-password';
+
+GRANT ALL PRIVILEGES
+ON featureflagsdb.*
+TO 'flagship-user'@'localhost';
+```
+
+### Run Backend
+
 ```bash
 ./mvnw spring-boot:run
 ```
 
-The backend serves the built React app as static files on port 8080. You do not need to run the frontend separately in production.
+The application will be available on:
 
-### Frontend dev server (optional — hot reload only)
-```bash
-cd Frontend
-npm install
-npm run dev   # starts on :5173, proxies API calls to :8080
+```text
+http://localhost:8080
 ```
 
-### Building the frontend
+### Run Frontend (Development)
+
 ```bash
-cd Frontend && npm run build
-# copy dist/* to src/main/resources/static/
+cd Frontend
+
+npm install
+npm run dev
+```
+
+Vite runs on port `5173` and proxies API requests to the backend.
+
+### Build Frontend
+
+```bash
+cd Frontend
+npm run build
+```
+
+Copy the generated files into:
+
+```text
+src/main/resources/static/
 ```
 
 ---
 
-## 📖 SDK Usage
+## JavaScript SDK
 
-The recommended integration is via the [JS SDK](./JS-SDK):
-
-```bash
-npm install flagship-sdk
-```
-
-```js
-import FlagShip from 'flagship-sdk';
+```javascript
+import FlagShip from '@tanmaybajpai/flagship-js-sdk';
 
 const flagship = new FlagShip({
-  apiKey: 'your-api-key',             // from the FlagShip dashboard
-  baseUrl: 'https://your-server.com',
+  apiKey: 'your-api-key',
+  baseUrl: 'https://your-server.com'
 });
 
 await flagship.init();
 
-const enabled = await flagship.evaluate('new-checkout', 'user-123', {
-  plan: 'pro',
-  country: 'US'
-});
+const enabled = await flagship.evaluate(
+  'new-checkout',
+  'user-123',
+  {
+    plan: 'pro',
+    country: 'US'
+  }
+);
+```
 
-// record a conversion event
+Track a conversion event:
+
+```javascript
 await flagship.trackSuccess('user-123');
 ```
 
-See [`JS-SDK/README.md`](./JS-SDK/README.md) for the full SDK reference.
+See the SDK documentation for the complete API reference.
 
 ---
 
-## 📡 REST API (direct integration)
+## REST API
 
-All SDK endpoints require the `X-API-Key` header.
+SDK endpoints require an API key supplied through:
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/config` | Returns all flag configs for the account |
-| `POST` | `/api/success?userId=X` | Records a conversion event for a user |
-
-Dashboard endpoints (session cookie required) are documented in [`CLAUDE.md`](.claude/CLAUDE.md).
-
----
-
-## 🧮 How Sticky Bucketing Works
-
-1. Build input string: `userId + "|" + flagName + "|" + seed`
-2. SHA-256 hash the string
-3. Take the first 8 bytes as an unsigned 64-bit integer
-4. `bucket = value % 100`
-5. If `bucket < rolloutPercent` → flag is enabled for this user
-
-The `seed` is a random value stored per-flag. Resetting a flag's users (via the dashboard) regenerates the seed, reshuffling all bucket assignments without changing the rollout percentage. The same algorithm runs in the JS SDK and in the server's legacy evaluate endpoint.
-
----
-
-## 📊 Conversion Analytics
-
-Calling `POST /api/success?userId=X` checks every flag owned by the account and increments `flagConversions` (user is in the flag bucket) or `controlConversions` (user is in control) on each one.
-
-The dashboard displays **lift**, computed as:
-
-```
-flagNorm    = flagConversions    / rolloutPercent
-controlNorm = controlConversions / (100 - rolloutPercent)
-lift        = (flagNorm - controlNorm) / controlNorm × 100
+```http
+X-API-Key: <api-key>
 ```
 
+### Fetch Configuration
+
+```http
+GET /api/config
+```
+
+Returns all feature flag configuration for the account.
+
+### Record Conversion
+
+```http
+POST /api/success?userId=user-123
+```
+
+Records a successful conversion event.
+
 ---
 
-## 📷 Screenshots
+## Sticky Bucketing
 
-### Login Page
-<img width="1920" height="978" alt="Screenshot_20250920_201250" src="https://github.com/user-attachments/assets/0b56c26f-700c-4fd0-bdca-087b1c0152a3" />
+User assignment is deterministic.
+
+```text
+userId | flagName | seed
+```
+
+The combined value is:
+
+1. Hashed using SHA-256
+2. Converted to an unsigned 64-bit integer
+3. Mapped into a bucket from 0–99
+
+```text
+bucket = hash % 100
+```
+
+A flag is enabled when:
+
+```text
+bucket < rolloutPercentage
+```
+
+Because the same input always produces the same bucket, users remain consistently assigned across sessions.
+
+Resetting a flag regenerates its seed and redistributes users without changing the rollout percentage.
+
+---
+
+## Conversion Lift
+
+Lift is calculated as:
+
+```text
+flagRate    = flagConversions / rolloutPercent
+controlRate = controlConversions / (100 - rolloutPercent)
+
+lift = ((flagRate - controlRate) / controlRate) * 100
+```
+
+Positive values indicate the feature outperformed the control group.
+
+---
+
+## Screenshots
+
+### Login
+
+![Login](docs/login.png)
 
 ### Dashboard
-<img width="1901" height="980" alt="Screenshot_20250920_201325" src="https://github.com/user-attachments/assets/e13016a1-0ff1-41f3-b565-385cf27d77e4" />
 
-### Creating a Feature Flag
-<img width="1901" height="977" alt="Screenshot_20250920_201347" src="https://github.com/user-attachments/assets/947d5533-af61-4dd7-b29d-4dfd33ed5df1" />
+![Dashboard](docs/dashboard.png)
+
+### Create Feature Flag
+
+![Create Feature Flag](docs/create-flag.png)

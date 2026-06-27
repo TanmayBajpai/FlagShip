@@ -11,7 +11,8 @@ export class FlagShip {
   }
 
   async init() {
-    await this.refresh();
+    const flags = await fetchConfig(this.baseUrl, this.apiKey);
+    this.flags = new Map(flags.map(f => [f.flagName, f]));
     this.poller = setInterval(() => this.refresh(), this.pollInterval);
   }
 

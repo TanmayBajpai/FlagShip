@@ -1,4 +1,4 @@
-# flagship-sdk
+# @tanmaybajpai/flagship-js-sdk
 
 Official JavaScript SDK for [FlagShip](https://github.com/TanmayBajpai/Flagship) — a self-hosted feature flag platform.
 
@@ -7,13 +7,13 @@ Flags are fetched from your FlagShip server once on startup and cached locally. 
 ## Installation
 
 ```bash
-npm install flagship-sdk
+npm install @tanmaybajpai/flagship-js-sdk
 ```
 
 ## Quick Start
 
 ```js
-import FlagShip from 'flagship-sdk';
+import FlagShip from '@tanmaybajpai/flagship-js-sdk';
 
 const flagship = new FlagShip({
   apiKey: 'your-api-key',               // from the FlagShip dashboard
@@ -159,7 +159,7 @@ The `seed` is a random value stored per-flag on the server. Resetting a flag's u
 If you need CommonJS compatibility, use a dynamic import:
 
 ```js
-const { default: FlagShip } = await import('flagship-sdk');
+const { default: FlagShip } = await import('@tanmaybajpai/flagship-js-sdk');
 ```
 
 ---

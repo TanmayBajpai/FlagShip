@@ -1,5 +1,5 @@
 {
-  "name": "flagship-sdk",
+  "name": "@tanmaybajpai/flagship-js-sdk",
   "version": "1.0.0",
   "description": "Official JavaScript SDK for FlagShip — evaluate feature flags locally with zero latency.",
   "type": "module",
@@ -37,10 +37,10 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/TanmayBajpai/Flagship.git",
-    "directory": "JS-SDK"
+    "directory": "sdk/js-sdk"
   },
   "bugs": {
     "url": "https://github.com/TanmayBajpai/Flagship/issues"
   },
-  "homepage": "https://github.com/TanmayBajpai/Flagship/tree/main/JS-SDK#readme"
+  "homepage": "https://github.com/TanmayBajpai/Flagship/tree/main/sdk/js-sdk#readme"
 }
